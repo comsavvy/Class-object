@@ -1,8 +1,13 @@
-import itertools as it
-import functools as ft
 from operator import add
 
-__all__ = ['Usage']
+__all__ = ['Usage', 'sum']
+
+
+def sum(*iterable):
+    total = Usage()
+    for i in iter(iterable):
+        total += i
+    return total
 
 
 class Usage:
@@ -10,21 +15,24 @@ class Usage:
         self.__slot__ = ['first', 'second']
         self.first = first
         self.second = second
-        self.__all__ = ['add']
+        self.__all__ = ['add', 'sum']
 
     @staticmethod
     def sum(self: object, *others: object) -> object:
         result = Usage()
         if isinstance(self, (list, tuple)):
-            for i in self:
-                result += i
+            if isinstance(self[0], (int, float)):
+                result += self
+            else:
+                for i in self:
+                    result += i
         else:
             result = self
-        if isinstance(others, Usage):
-            return result + others
-        else:
-            for i in others:
-                if isinstance(i, (list, tuple)):
+        for i in others:
+            if isinstance(i, Usage):
+                result += i
+            elif isinstance(i, (tuple, list)):
+                if isinstance(i[0], Usage):
                     for j in i:
                         result += j
                 else:
@@ -33,29 +41,66 @@ class Usage:
 
     def add(self, *other):
         current = Usage(self.first, self.second)
-        return self.sum(current, other)
+        return self.sum(current, *other)
+
+    def _test(self, other, one=None):
+        if one is None:
+            if len(other) > 2 or len(other) < 2:
+                raise TypeError(f'{type(other)} must be two dimension')
+        else:
+            raise ValueError(f'Operation on {type(other)} cannot be done!')
 
     def __add__(self, other):
         # Different ways of addition
         # added = add(self.first, other.first), add(self.second, other.second)
         # added = (add(a, b) for a, b in [(self.first, other.first), (self.second, other.second)])
         # added = (sum(i) for i in zip([self.first, self.second], [other.first, other.second]))
-
-        added = self.first + other.first, self.second + other.second
+        if isinstance(other, Usage):
+            added = self.first + other.first, self.second + other.second
+        elif isinstance(other, (tuple, list)):
+            self._test(other)
+            added = self.first + other[0], self.second + other[1]
+        else:
+            self._test(other, one=bool)
         return Usage(*added)
+
+    def __sub__(self, other):
+        """
+        Making the instance of Usage accept subtraction
+        """
+        if isinstance(other, Usage):
+            added = self.first - other.first, self.second - other.second
+        elif isinstance(other, (tuple, list)):
+            self._test(other)
+            added = self.first - other[0], self.second - other[1]
+        else:
+            self._test(other, one=bool)
+        return Usage(*added)
+
+    def __round__(self, n=None):
+        return Usage(round(self.first, n), round(self.second, n))
 
     def __mul__(self, other):
         if isinstance(other, Usage):
             m = self.first * other.first, self.second * other.second
         elif isinstance(other, (int, float)):
             m = self.first * other, self.second * other
-        elif isinstance(other, (tuple, set)):
-            if len(other) > 2:
-                raise TypeError(f'{type(other)} must be two dimension')
+        elif isinstance(other, (tuple, list)):
+            self._test(other)
             m = self.first * other[0], self.second * other[1]
         else:
-            raise ValueError(f'Operation on {type(other)} cannot be done!')
+            self._test(other, one=bool)
         return Usage(*m)
+
+    def __truediv__(self, other):
+        if isinstance(other, Usage):
+            added = self.first / other.first, self.second / other.second
+        elif isinstance(other, (tuple, list)):
+            self._test(other)
+            added = self.first / other[0], self.second / other[1]
+        else:
+            self._test(other, one=bool)
+        return Usage(*added)
 
     def __lt__(self, other):
         return (self.first + self.second) < (other.first + other.second)
@@ -75,6 +120,12 @@ class Usage:
     def __eq__(self, other):
         return (self.first + self.second) == (other.first + other.second)
 
+    def __iter__(self):
+        """
+        This will allow class Usage to be iterable
+        """
+        return iter([self.first, self.second])
+
     def __str__(self):
         form = f'{self.__class__.__name__}(first={self.first}, second={self.second})'
         return form
@@ -85,7 +136,7 @@ class Usage:
 
 
 if __name__ == '__main__':
-    a = Usage(89, 90)
+    a = Usage(60, 28)
     b = Usage(21, 102)
     print(a,  b)
     d = [Usage(i, j) for i, j in enumerate(range(1, 21), start=1)]
@@ -94,4 +145,6 @@ if __name__ == '__main__':
     print(Usage.sum(a, b, b))
     print(Usage.sum([a, b], b))
     print(a + b)
-    print(a.add(b))
+    print(a.add(b, a))
+    print(a.sum((12, 23), [a, b], (12, 3), [a, b]))
+    print(Usage(91) <= a)
