@@ -133,18 +133,3 @@ class Usage:
     def __repr__(self):
         form = f'{self.__class__.__name__}(first={self.first}, second={self.second})'
         return form
-
-
-if __name__ == '__main__':
-    a = Usage(60, 28)
-    b = Usage(21, 102)
-    print(a,  b)
-    d = [Usage(i, j) for i, j in enumerate(range(1, 21), start=1)]
-    print(Usage.sum(d))
-    print(Usage.sum(d, b, a, b))
-    print(Usage.sum(a, b, b))
-    print(Usage.sum([a, b], b))
-    print(a + b)
-    print(a.add(b, a))
-    print(a.sum((12, 23), [a, b], (12, 3), [a, b]))
-    print(Usage(91) <= a)
