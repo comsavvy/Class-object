@@ -4,9 +4,10 @@ __all__ = ['Usage', 'sum']
 
 
 def sum(*iterable):
-    total = Usage()
-    for i in iter(iterable):
-        total += i
+    """
+    Sum of class Usage, (tuple, list -> 2 dimension)
+    """
+    total = Usage.sum(*iterable)
     return total
 
 
@@ -19,13 +20,13 @@ class Usage:
 
     @staticmethod
     def sum(self: object, *others: object) -> object:
-        result = Usage()
+        result = Usage()  # result = Usage(0, 0)
         if isinstance(self, (list, tuple)):
-            if isinstance(self[0], (int, float)):
-                result += self
+            if isinstance(self[0], (int, float)):  # Checking the first items of the tuple to confirm the operation to perform
+                result += self  # If it is int or float
             else:
                 for i in self:
-                    result += i
+                    result += i  # If it is Usage instance
         else:
             result = self
         for i in others:
@@ -46,7 +47,7 @@ class Usage:
     def _test(self, other, one=None):
         if one is None:
             if len(other) > 2 or len(other) < 2:
-                raise TypeError(f'{type(other)} must be two dimension')
+                raise ValueError(f'{type(other)} must be two dimension')
         else:
             raise ValueError(f'Operation on {type(other)} cannot be done!')
 
@@ -78,9 +79,15 @@ class Usage:
         return Usage(*added)
 
     def __round__(self, n=None):
+        """
+        Using the in-built round method of class Usage is allowed
+        """
         return Usage(round(self.first, n), round(self.second, n))
 
     def __mul__(self, other):
+        """
+        Class Usage can multiply itself with tuple and list of 2 dimension
+        """
         if isinstance(other, Usage):
             m = self.first * other.first, self.second * other.second
         elif isinstance(other, (int, float)):
@@ -93,11 +100,16 @@ class Usage:
         return Usage(*m)
 
     def __truediv__(self, other):
+        """
+        Division is allow on Usage class
+        """
         if isinstance(other, Usage):
             added = self.first / other.first, self.second / other.second
         elif isinstance(other, (tuple, list)):
             self._test(other)
             added = self.first / other[0], self.second / other[1]
+        elif isinstance(other, (int, float)):
+            added = self.first / other, self.second / other
         else:
             self._test(other, one=bool)
         return Usage(*added)
@@ -115,10 +127,10 @@ class Usage:
         return (self.first + self.second) >= (other.first + other.second)
 
     def __ne__(self, other):
-        return (self.first + self.second) != (other.first + other.second)
+        return (self.first != other.first) and (other.second != self.second)
 
     def __eq__(self, other):
-        return (self.first + self.second) == (other.first + other.second)
+        return (self.first == other.first) and (other.second == self.second)
 
     def __iter__(self):
         """
